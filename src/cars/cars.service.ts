@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Car } from './interfaces/car.interface';
 import { v4 as uuid } from "uuid";
-import { CreateCarDto } from './dto/create-car.dto';
+import { CreateCarDto, UpdateCarDto } from './dto';
 
 //Decorador injectable, es decir, se puede inyectar
 // aca va la logica de negocio, para que sea reutilizable
@@ -40,7 +40,7 @@ export class CarsService {
     }
 
     create(createCarDto: CreateCarDto) {
-        const newCar = {
+        const newCar: Car = {
             id: uuid(),
             //usamos spread operator
             ...createCarDto
@@ -50,5 +50,28 @@ export class CarsService {
         };
         this.cars.push(newCar);
         return newCar;
+    }
+
+    update(id: string, updateCarDto: UpdateCarDto) {
+        let carDB = this.findById(id);
+
+        // validacion para enviar un mensaje de aviso sobre el error
+        if (updateCarDto.id && updateCarDto.id !== id)
+            throw new BadRequestException(`Car id is not valid inside body`)
+
+        this.cars = this.cars.map(car => {
+            if (car.id === id) {
+                carDB = { ...carDB, ...updateCarDto, id }
+                return carDB;
+            }
+            return car;
+        })
+        return carDB;// carro actualizado
+    }
+
+    delete(id: string) {
+        const car = this.findById(id);
+        this.cars = this.cars.filter( car => car.id !== id);
+
     }
 }
