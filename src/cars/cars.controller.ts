@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CarsService } from './cars.service';
+import { CreateCarDto } from './dto/create-car.dto';
 
 @Controller('cars')
+//se puede aplicar validacion a nivel controlador
+//@UsePipes(ValidationPipe)
 export class CarsController {
   //inyeccion de dependencias del servicio creado
   constructor(
@@ -16,32 +19,37 @@ export class CarsController {
   }
 
   @Get(':id')
-  getCarById(@Param('id', ParseIntPipe) id: number) {
+  getCarById(@Param('id', new ParseUUIDPipe({ version: "4" })) id: string) {
+    return this.carsService.findById(id);
+  }
+  // Ver el parseIntPipe se utiliza para validar que sea un tipo number
+  /* getCarById(@Param('id', ParseIntPipe) id: number) {
     console.log({ id })
     return this.carsService.findById(id);
-    /*   getCarById(@Param('id') id: string) {
+       //getCarById(@Param('id') id: string) {
      //convertir el id que se pasa como parametro a number, se agrega el +
-     return this.carsService.findById(+id);*/
-  }
+     //return this.carsService.findById(+id);
+  } */
 
   @Post()
-  createCar(@Body() body: any) {
-    return { body }
+  //se puede aplicar validacion a nivel metodo
+  //@UsePipes(ValidationPipe)
+  createCar(@Body() createCarDto: CreateCarDto) {
+    return this.carsService.create(createCarDto)
   }
 
   @Patch(":id")
   updateCar(
     @Param("id", ParseIntPipe) id: number,
-    @Body() body: any )
-  {
+    @Body() body: any) {
     return body;
   }
 
   @Delete(':id')
-  deleteCar(@Param("id", ParseIntPipe ) id: number ) {
-    return { 
+  deleteCar(@Param("id", ParseIntPipe) id: number) {
+    return {
       method: "delete",
       id
-     }
+    }
   }
 }
